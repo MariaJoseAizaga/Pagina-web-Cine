@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>[Nombre del Cine] — Cartelera, Horarios y Entradas</title>
+  <meta name="description" content="Consulta la cartelera, próximos estrenos, horarios, formatos (2D/3D/IMAX), compra entradas y conoce nuestras promociones." />
+  <meta name="author" content="[Nombre del Cine]" />
+  <meta name="theme-color" content="#071322" />
+
+  <!-- JSON-LD básico (ejemplo): película + organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "name": "[Nombre del Cine]",
+        "url": "https://www.ejemplo-cine.com",
+        "sameAs": ["https://www.facebook.com/","https://www.instagram.com/"]
+      },
+      {
+        "@type": "Movie",
+        "name": "Dune: Part Two",
+        "image": "https://images.unsplash.com/photo-1517602302552-471fe67acf66",
+        "genre": "Ciencia ficción",
+        "duration": "PT165M",
+        "description": "Paul Atreides continúa su épico destino."
+      }
+    ]
+  }
+  </script>
+
+  <style>
+  /* ---------- Variables y reset ---------- */
+  :root{
+    --bg:#06111a; --card:#0f1b26; --muted:#9fb1c2; --accent:#ff3d3d; --accent-2:#ffd57a;
+    --glass:rgba(255,255,255,0.03); --radius:12px; --maxw:1200px; --shadow: 0 12px 30px rgba(2,6,23,0.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#02101a);color:#eef2f7}
+  a{color:inherit;text-decoration:none}
+  .container{max-width:var(--maxw);margin:16px auto;padding:18px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:linear-gradient(180deg,rgba(6,17,26,0.95),rgba(6,17,26,0.85));backdrop-filter: blur(4px);z-index:80;padding:12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+  .logo{display:flex;align-items:center;gap:12px}
+  .mark{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#ff6b6b,#ff3d3d);display:flex;align-items:center;justify-content:center;font-weight:800}
+  nav{display:flex;gap:14px}
+  nav a{padding:8px 10px;border-radius:8px;color:var(--muted);font-weight:600}
+  nav a:hover{color:white}
+
+  /* HERO */
+  .hero{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:14px;align-items:start}
+  .hero-left{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow)}
+  .hero-left h1{font-size:28px;margin-bottom:8px}
+  .muted{color:var(--muted)}
+  .searchbar{display:flex;gap:8px;margin-top:12px}
+  .searchbar input{flex:1;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:#eaf6ff}
+  .searchbar button{padding:10px 12px;border-radius:8px;border:none;background:var(--accent);color:white;font-weight:700;cursor:pointer}
+
+  .carousel{margin-top:12px;border-radius:10px;overflow:hidden;position:relative}
+  .carousel img{width:100%;height:340px;object-fit:cover;display:block;filter:brightness(0.64)}
+  .carousel .info{position:absolute;left:22px;bottom:22px;background:linear-gradient(90deg,rgba(0,0,0,0.45),transparent);padding:12px;border-radius:8px}
+
+  .hero-right{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:18px;border-radius:12px}
+
+  /* layout */
+  .layout{display:grid;grid-template-columns:1fr;gap:18px;margin-top:18px}
+  .section{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.6)}
+  .section h2{margin-bottom:10px}
+
+  /* movies grid */
+  .movies-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .movie{background:var(--glass);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-height:360px;padding-bottom:10px;transition:transform .14s}
+  .movie:hover{transform:translateY(-6px)}
+  .movie img{width:100%;height:300px;object-fit:cover}
+  .card-body{padding:10px;display:flex;flex-direction:column;gap:8px}
+  .title{font-weight:800}
+  .meta{color:var(--muted);font-size:13px}
+  .actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .btn{padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
+  .btn-primary{background:var(--accent);color:white;font-weight:700}
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+  .formats{display:flex;gap:6px;flex-wrap:wrap}
+
+  /* filters row */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.02);cursor:pointer;color:var(--muted);font-weight:700}
+
+  /* coming soon */
+  .coming-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+  .coming-card{min-width:180px;border-radius:8px;background:rgba(255,255,255,0.02);padding:8px}
+
+  /* schedule compact */
+  .schedule{display:grid;gap:12px}
+  .movie-line{display:flex;align-items:flex-start;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.01)}
+  .time-list{display:flex;gap:6px;flex-wrap:wrap}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:18px;visibility:hidden;opacity:0;transition:all .18s;z-index:90}
+  .modal.show{visibility:visible;opacity:1}
+  .modal-card{background:#071322;padding:16px;border-radius:12px;width:100%;max-width:1120px;display:grid;grid-template-columns:380px 1fr;gap:14px}
+  .poster{width:100%;height:320px;object-fit:cover;border-radius:8px}
+  .m-info h3{margin:0}
+  .m-info p{color:var(--muted)}
+
+  .showtimes{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .time{padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.03);cursor:pointer}
+
+  /* seatmap */
+  .seatmap{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:8px}
+  .seat{height:34px;border-radius:6px;background:#12313d;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;color:var(--muted)}
+  .seat.taken{background:#4b5563;cursor:not-allowed}
+  .seat.selected{background:var(--accent)}
+
+  /* trailer */
+  .trailer{width:100%;height:220px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+
+  footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px;padding-bottom:20px}
+
+  @media (max-width:980px){
+    .hero{grid-template-columns:1fr}
+    .modal-card{grid-template-columns:1fr}
+    .movie img{height:220px}
+    .poster{height:220px}
+    .trailer{height:180px}
+    .seatmap{grid-template-columns:repeat(8,1fr)}
+  }
+  @media (max-width:540px){
+    .movies-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+    .poster{height:180px}
+    .trailer{height:150px}
+  }
+  </style>
+</head>
+<body>
+  <div class="container" id="mainContent">
+    <header>
+      <div class="logo"><div class="mark">C</div><div style="line-height:1"><strong>[Nombre del Cine]</strong><div style="font-size:12px;color:var(--muted)">Cartelera • Entradas • Promos</div></div></div>
+      <nav aria-label="Navegación principal">
+        <a href="#cartelera">Cartelera</a>
+        <a href="#estrenos">Estrenos</a>
+        <a href="#horarios">Horarios</a>
+        <a href="#promos">Promociones</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero" aria-label="Hero - Destacados">
+        <div class="hero-left" role="region" aria-label="Destacados">
+          <h1>Cartelera</h1>
+          <p class="muted">Compra entradas, consulta horarios por día, elige formato (2D/3D/IMAX) y reserva asientos en línea.</p>
+
+          <div class="searchbar" role="search" aria-label="Buscar película">
+            <input id="searchInput" placeholder="Buscar por título, género o formato..." aria-label="Buscar película" />
+            <button id="searchBtn" class="btn btn-primary">Buscar</button>
+          </div>
+
+          <div class="carousel" id="carousel" aria-hidden="false" aria-live="polite" style="margin-top:12px">
+            <img id="carouselImg" src="" alt="Banner destacado">
+            <div class="info">
+              <div id="carouselTitle" style="font-weight:800">Título destacado</div>
+              <div id="carouselMeta" class="muted">Género · duración · formatos</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-right" role="region" aria-label="Promociones">
+          <h3>Promociones</h3>
+          <p class="muted">Martes 2x1 (2D) • 10% socios • Combo palomitas + bebida</p>
+          <div style="margin-top:12px"><button class="btn btn-primary" id="joinLoyal">Unirme al club</button></div>
+          <div style="margin-top:18px">
+            <strong>Próxima función destacada</strong>
+            <div class="muted" id="nextFeatured">IMAX • 20:00 • Sala 1</div>
+          </div>
+        </aside>
+      </section>
+
+      <!-- CARTELERA -->
+      <section id="cartelera" class="section" aria-label="Cartelera actual">
+        <h2>Películas en cartelera</h2>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="filters" aria-hidden="false">
+            <div class="chip" data-filter="all">Todos</div>
+            <div class="chip" data-filter="2d">2D</div>
+            <div class="chip" data-filter="3d">3D</div>
+            <div class="chip" data-filter="imax">IMAX</div>
+          </div>
+          <div class="muted">Mostrando <span id="resultCount">0</span> películas</div>
+        </div>
+
+        <div class="movies-grid" id="moviesGrid" aria-live="polite"></div>
+      </section>
+
+      <!-- ESTRNOS -->
+      <section id="estrenos" class="section" aria-label="Próximos estrenos">
+        <h2>Próximos estrenos</h2>
+        <div class="coming-row" id="comingRow"></div>
+      </section>
+
+      <!-- HORARIOS -->
+      <section id="horarios" class="section" aria-label="Horarios y funciones">
+        <h2>Horarios y funciones</h2>
+        <div class="schedule" id="scheduleArea"></div>
+      </section>
+
+      <!-- PROMOS -->
+      <section id="promos" class="section" aria-label="Promociones y fidelidad">
+        <h2>Promociones y Programa de fidelidad</h2>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="background:linear-gradient(90deg,var(--accent-2),rgba(255,255,255,0.02));padding:12px;border-radius:8px;min-width:220px">Martes 2x1 (2D)</div>
+          <div style="background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;min-width:220px">10% socios CineClub</div>
+          <div style="background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;min-width:220px">Combo palomitas + bebida $6.99</div>
+        </div>
+      </section>
+
+      <!-- BLOG -->
+      <section id="blog" class="section" aria-label="Noticias">
+        <h2>Noticias & Blog</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+          <article style="background:var(--glass);padding:12px;border-radius:8px">
+            <h3>Nuevas tecnologías en pantalla</h3>
+            <p class="muted">Descubre por qué el IMAX y sonido inmersivo son el futuro del cine.</p>
+          </article>
+          <article style="background:var(--glass);padding:12px;border-radius:8px">
+            <h3>Guía para tu primera vez en sala IMAX</h3>
+            <p class="muted">Consejos para aprovechar la experiencia al máximo.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- CONTACTO -->
+      <section id="contacto" class="section" aria-label="Contacto y ubicaciones">
+        <h2>Contacto y ubicaciones</h2>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1">
+            <p class="muted">Centro Comercial Plaza — Bogotá</p>
+            <p class="muted">Tel: +57 300 000 0000 • Email: info@ejemplo-cine.com</p>
+          </div>
+          <div style="flex-basis:260px"><button class="btn btn-ghost" id="openMap">Ver en mapa</button></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      © [Nombre del Cine] 2025 • Síguenos en Instagram · Facebook · X (Twitter)
+    </footer>
+  </div>
+
+  <!-- Modal: Detalle película + selección formato/hora/asientos -->
+  <div id="movieModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="mTitle">
+    <div class="modal-card">
+      <div>
+        <img id="mPoster" class="poster" src="" alt="Poster película" />
+        <div style="margin-top:10px" class="muted">Formatos</div>
+        <div id="mFormats" class="formats" style="margin-top:8px"></div>
+
+        <div style="margin-top:12px"><strong>Trailer</strong></div>
+        <div class="trailer" id="mTrailer"></div>
+      </div>
+
+      <div class="m-info">
+        <h3 id="mTitle">Título película</h3>
+        <div id="mMeta" class="muted">Género · Duración · Clasificación</div>
+        <p id="mDesc" class="muted" style="margin-top:8px"></p>
+
+        <div style="margin-top:12px">
+          <label for="formatSelect" class="muted">Selecciona formato</label>
+          <select id="formatSelect" style="width:100%;padding:8px;border-radius:8px;background:#071421;border:none;color:#fff;margin-top:6px"></select>
+        </div>
+
+        <div style="margin-top:12px">
+          <h4>Horarios por día</h4>
+          <div id="mShowtimes" class="showtimes"></div>
+        </div>
+
+        <div style="margin-top:12px">
+          <h4>Selecciona tus asientos</h4>
+          <div id="screenLabel" style="margin-bottom:8px">PANTALLA</div>
+          <div id="seatMap" class="seatmap" role="grid" aria-label="Mapa de asientos"></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          <div class="muted">Seleccionados: <span id="selCount">0</span></div>
+          <div style="margin-left:auto">
+            <button class="btn btn-primary" id="confirmBuy">Comprar</button>
+            <button class="btn btn-ghost" id="closeModal">Cerrar</button>
+          </div>
+        </div>
+        <div style="margin-top:8px" class="muted">Política: las compras en este demo son simuladas. En producción integrar pasarela.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /*******************************
+   * Datos (MVP) — reemplazar en producción con backend o TMDB
+   *******************************/
+  const MOVIES = [
+    { id:'m1', title:'Dune: Part Two', genre:'Ciencia ficción', duration:'2h 45m', rating:'PG-13', language:'Inglés', formats:['2D','IMAX'], poster:'https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'n3iW4bQGZ9k', synopsis:'Paul Atreides continúa su épica travesía por Arrakis.', showtimes:[{date:'2025-09-24', times:['12:30','16:00','20:00'], room:'IMAX'},{date:'2025-09-25', times:['15:00','19:30'], room:'Sala 1'}], price:14},
+    { id:'m2', title:'Deadpool & Wolverine', genre:'Acción / Comedia', duration:'2h 10m', rating:'R', language:'Inglés', formats:['2D','IMAX'], poster:'https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'Q0CbN8sfihY', synopsis:'Wade y Logan se juntan para causar el caos.', showtimes:[{date:'2025-09-23', times:['13:00','16:30','20:15'], room:'IMAX'},{date:'2025-09-24', times:['14:00','18:00'], room:'Sala 2'}], price:12},
+    { id:'m3', title:'Inside Out 2', genre:'Animación / Familiar', duration:'1h 55m', rating:'G', language:'Español', formats:['2D','3D'], poster:'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'aT8pG3kK1lg', synopsis:'Las emociones vuelven con nuevas aventuras.', showtimes:[{date:'2025-09-23', times:['11:00','15:00','18:30'], room:'Sala 3 - 3D'},{date:'2025-09-24', times:['12:00','16:00'], room:'Sala 2'}], price:9},
+    { id:'m4', title:'Oppenheimer', genre:'Drama / Historia', duration:'3h 0m', rating:'R', language:'Inglés', formats:['2D'], poster:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'wGFX9ZL7mX4', synopsis:'Biografía del científico detrás del Proyecto Manhattan.', showtimes:[{date:'2025-09-23', times:['13:30','20:00'], room:'Sala 1'},{date:'2025-09-25', times:['17:00'], room:'Sala 2'}], price:11},
+    { id:'m5', title:'Comedia en la Ciudad', genre:'Comedia', duration:'1h 45m', rating:'PG-13', language:'Español', formats:['2D','3D'], poster:'https://images.unsplash.com/photo-1508425072479-4f0c0cc51b60?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'dQw4w9WgXcQ', synopsis:'Risas y situaciones cotidianas por doquier.', showtimes:[{date:'2025-09-23', times:['11:15','14:45','19:30'], room:'Sala 2'},{date:'2025-09-24', times:['13:00','17:00'], room:'Sala 3'}], price:8},
+    { id:'m6', title:'El Misterio del Faro', genre:'Suspenso', duration:'1h 58m', rating:'PG-13', language:'Español', formats:['2D'], poster:'https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'J---aiyznGQ', synopsis:'Secuelas y secretos en un faro aislado.', showtimes:[{date:'2025-09-23', times:['12:00','19:00'], room:'Sala 4'},{date:'2025-09-25', times:['17:30','21:00'], room:'Sala 3'}], price:7},
+    { id:'m7', title:'Aventuras en la Isla', genre:'Animación / Aventura', duration:'1h 35m', rating:'G', language:'Español', formats:['2D','3D'], poster:'https://images.unsplash.com/photo-1507149833265-60c372daea22?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'e-ORhEE9VVg', synopsis:'Amigos y misterios en una isla mágica.', showtimes:[{date:'2025-09-23', times:['10:00','13:30','17:00'], room:'Sala Infantil'},{date:'2025-09-24', times:['11:00','15:30'], room:'Sala 2'}], price:6},
+    { id:'m8', title:'Noches de Verano', genre:'Drama / Romance', duration:'2h 5m', rating:'PG-13', language:'Español', formats:['2D'], poster:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'kXYiU_JCYtU', synopsis:'Historias que se cruzan en una noche de verano.', showtimes:[{date:'2025-09-23', times:['14:00','20:30'], room:'Sala 5'},{date:'2025-09-24', times:['16:00'], room:'Sala 4'}], price:8},
+    { id:'m9', title:'Thriller Nocturno', genre:'Terror', duration:'1h 50m', rating:'R', language:'Inglés', formats:['2D'], poster:'https://images.unsplash.com/photo-1542206395-9feb3edaa68b?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'oHg5SJYRHA0', synopsis:'Un thriller que no te permitirá dormir.', showtimes:[{date:'2025-09-23', times:['22:00'], room:'Sala 4'},{date:'2025-09-24', times:['22:00'], room:'Sala 4'}], price:7},
+    { id:'m10', title:'Documental Tierra', genre:'Documental', duration:'1h 30m', rating:'G', language:'Español', formats:['2D'], poster:'https://images.unsplash.com/photo-1482192505345-5655af888cc4?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'V-_O7nl0Ii0', synopsis:'Exploración visual de la naturaleza y sus ecosistemas.', showtimes:[{date:'2025-09-24', times:['10:00','13:00'], room:'Sala 6'},{date:'2025-09-25', times:['12:00'], room:'Sala 6'}], price:5}
+  ];
+
+  const COMING = [
+    {id:'c1', title:'Romance de Otoño', release:'2025-10-10', poster:'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder'},
+    {id:'c2', title:'Sci-Fi 2099', release:'2025-11-05', poster:'https://images.unsplash.com/photo-1502136969935-8d61a4e5b8b1?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder'},
+    {id:'c3', title:'Animales Fantásticos 4', release:'2025-12-01', poster:'https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder'},
+    {id:'c4', title:'El Regreso', release:'2026-01-15', poster:'https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder'},
+    {id:'c5', title:'Aventura Lunar', release:'2026-02-20', poster:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder'}
+  ];
+
+  /*******************************
+   * Render helpers
+   *******************************/
+  const moviesGrid = document.getElementById('moviesGrid');
+  const resultCount = document.getElementById('resultCount');
+  function renderMovies(list = MOVIES){
+    moviesGrid.innerHTML = '';
+    list.forEach(m => {
+      const box = document.createElement('div'); box.className = 'movie';
+      box.innerHTML = `
+        <img src="${m.poster}" alt="Poster ${m.title}">
+        <div class="card-body">
+          <div class="title">${m.title}</div>
+          <div class="meta">${m.genre} · ${m.duration} · ${m.language}</div>
+          <div class="formats" aria-hidden="true" style="margin-top:6px">${m.formats.map(f=>`<div style="padding:6px 8px;border-radius:6px;background:rgba(255,255,255,0.02);font-weight:700;color:var(--muted);font-size:12px;margin-right:6px">${f}</div>`).join('')}</div>
+          <div style="color:var(--muted);font-size:13px;margin-top:8px">${m.synopsis.substring(0,120)}...</div>
+          <div class="actions">
+            <button class="btn btn-primary" data-open="${m.id}">Ver detalles</button>
+            <button class="btn btn-ghost" data-buy="${m.id}">Comprar</button>
+            <button class="btn btn-ghost" data-share="${m.id}">Compartir</button>
+          </div>
+        </div>
+      `;
+      moviesGrid.appendChild(box);
+    });
+    resultCount.textContent = list.length;
+  }
+
+  function renderComing(){
+    const cRow = document.getElementById('comingRow');
+    cRow.innerHTML = '';
+    COMING.forEach(c => {
+      const el = document.createElement('div'); el.className = 'coming-card';
+      el.innerHTML = `<img src="${c.poster}" alt="${c.title}" style="width:100%;height:120px;object-fit:cover;border-radius:6px"><div style="font-weight:800;margin-top:8px">${c.title}</div><div class="muted" style="font-size:13px">Estreno: ${c.release}</div><div style="margin-top:8px"><button class="btn btn-ghost" data-notify="${c.id}">Notifícame</button></div>`;
+      cRow.appendChild(el);
+    });
+  }
+
+  function renderSchedule(list = MOVIES){
+    const scheduleArea = document.getElementById('scheduleArea');
+    scheduleArea.innerHTML = '';
+    list.forEach(m => {
+      const row = document.createElement('div'); row.className = 'movie-line';
+      const timesHTML = m.showtimes.map(s => `<div style="font-size:13px" title="${s.date}"><strong>${s.date}</strong>: ${s.times.join(' · ')} <em>(${s.room})</em></div>`).join('');
+      row.innerHTML = `<div style="flex:1"><strong>${m.title}</strong><div class="muted">${m.genre} · ${m.duration}</div></div><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><div class="formats">${m.formats.map(f=>`<div class='format'>${f}</div>`).join('')}</div><div style="margin-top:6px">${timesHTML}</div></div>`;
+      scheduleArea.appendChild(row);
+    });
+  }
+
+  /*******************************
+   * Carousel rotation
+   *******************************/
+  (function rotateCarousel(){
+    const img = document.getElementById('carouselImg');
+    const title = document.getElementById('carouselTitle');
+    const meta = document.getElementById('carouselMeta');
+    let idx = 0;
+    function tick(){
+      const m = MOVIES[idx % MOVIES.length];
+      img.src = m.poster;
+      title.textContent = m.title;
+      meta.textContent = `${m.genre} · ${m.duration} · ${m.formats.join(' · ')}`;
+      idx++;
+    }
+    tick();
+    setInterval(tick, 4500);
+  })();
+
+  /*******************************
+   * Modal (detalle + horario + asientos)
+   *******************************/
+  const modal = document.getElementById('movieModal');
+  const mPoster = document.getElementById('mPoster');
+  const mTitle = document.getElementById('mTitle');
+  const mMeta = document.getElementById('mMeta');
+  const mDesc = document.getElementById('mDesc');
+  const mFormats = document.getElementById('mFormats');
+  const mShowtimes = document.getElementById('mShowtimes');
+  const mTrailer = document.getElementById('mTrailer');
+  const formatSelect = document.getElementById('formatSelect');
+  const seatMap = document.getElementById('seatMap');
+  const selCount = document.getElementById('selCount');
+  let selectedSeats = []; let seatPrice = 0; let currentMovie = null;
+
+  function openModal(movieId){
+    const m = MOVIES.find(x=>x.id === movieId); if(!m) return;
+    currentMovie = m;
+    mPoster.src = m.poster;
+    mTitle.textContent = m.title;
+    mMeta.textContent = `${m.genre} · ${m.duration} · ${m.rating} · ${m.language}`;
+    mDesc.textContent = m.synopsis;
+    // formats
+    mFormats.innerHTML = m.formats.map(f=>`<div style="padding:6px 8px;border-radius:6px;background:rgba(255,255,255,0.02);font-weight:700;color:var(--muted);font-size:12px;margin-right:6px">${f}</div>`).join('');
+    // select options
+    formatSelect.innerHTML = m.formats.map(f=>`<option value="${f}">${f}</option>`).join('');
+    // showtimes
+    mShowtimes.innerHTML = '';
+    m.showtimes.forEach(s => {
+      const b = document.createElement('div');
+      b.innerHTML = `<div style="font-weight:700;margin-top:6px">${s.date} — ${s.room}</div>`;
+      s.times.forEach(t => {
+        const btn = document.createElement('button'); btn.className = 'time'; btn.textContent = t;
+        btn.onclick = ()=> buildSeatMap(m.id, s.date, t, m.price);
+        b.appendChild(btn);
+      });
+      mShowtimes.appendChild(b);
+    });
+    // trailer
+    mTrailer.innerHTML = '';
+    if(m.trailer){
+      const iframe = document.createElement('iframe');
+      iframe.width = '100%'; iframe.height = '100%'; iframe.frameBorder = 0;
+      iframe.src = `https://www.youtube.com/embed/${m.trailer}?rel=0`;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      mTrailer.appendChild(iframe);
+    } else {
+      mTrailer.innerHTML = '<div class="muted">Trailer no disponible</div>';
+    }
+    // show modal
+    modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
+
+    // set seat price default
+    seatPrice = m.price || 8;
+  }
+
+  function closeModal(){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); seatMap.innerHTML = ''; mTrailer.innerHTML = ''; selectedSeats = []; selCount.textContent = '0'; }
+
+  document.getElementById('closeModal').addEventListener('click', closeModal);
+
+  // event delegation for open/buy/share
+  document.addEventListener('click', (e) => {
+    const openId = e.target.dataset.open;
+    const buyId = e.target.dataset.buy;
+    const shareId = e.target.dataset.share;
+    const notifyId = e.target.dataset.notify;
+    if(openId) openModal(openId);
+    if(buyId) openModal(buyId);
+    if(shareId) shareMovie(shareId);
+    if(notifyId) alert('Te notificaremos cuando el estreno esté disponible (simulado).');
+  });
+
+  // sharing helper
+  function shareMovie(id){
+    const m = MOVIES.find(x=>x.id===id); if(!m) return;
+    const url = location.href + '#movie=' + id;
+    if(navigator.share){
+      navigator.share({title:m.title, text:m.synopsis, url});
+    } else {
+      const whatsapp = `https://wa.me/?text=${encodeURIComponent(m.title + ' — ' + url)}`;
+      const fb = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+      const tw = `https://twitter.com/intent/tweet?text=${encodeURIComponent(m.title + ' — ' + url)}`;
+      const choice = confirm('Compartir en WhatsApp? (Aceptar) — Facebook (Cancelar)');
+      if(choice) window.open(whatsapp,'_blank'); else window.open(fb,'_blank');
+    }
+  }
+
+  /*******************************
+   * Seat map generator (simulado)
+   *******************************/
+  function buildSeatMap(movieId, date, time, price){
+    seatMap.innerHTML = ''; selectedSeats = []; selCount.textContent = '0';
+    seatPrice = price || 8;
+    // simple grid: 6 rows x 10 cols
+    for(let r=0; r<6; r++){
+      for(let c=1; c<=10; c++){
+        const seatCode = String.fromCharCode(65 + r) + c;
+        const div = document.createElement('div'); div.className = 'seat'; div.textContent = seatCode;
+        // random occupancy for demo
+        if(Math.random() < 0.15){ div.classList.add('taken'); div.setAttribute('aria-disabled','true'); }
+        else {
+          div.tabIndex = 0;
+          div.onclick = ()=> toggleSeat(div, seatCode);
+          div.onkeydown = (ev)=> { if(ev.key === 'Enter') toggleSeat(div, seatCode); }
+        }
+        seatMap.appendChild(div);
+      }
+    }
+    // smooth scroll into view
+    seatMap.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+
+  function toggleSeat(el, code){
+    if(el.classList.contains('taken')) return;
+    if(el.classList.contains('selected')){
+      el.classList.remove('selected'); selectedSeats = selectedSeats.filter(s=>s !== code);
+    } else {
+      el.classList.add('selected'); selectedSeats.push(code);
+    }
+    selCount.textContent = selectedSeats.length;
+  }
+
+  // confirm buy (simulado)
+  document.getElementById('confirmBuy').addEventListener('click', ()=>{
+    if(selectedSeats.length === 0){ alert('Selecciona al menos un asiento.'); return; }
+    const total = (selectedSeats.length * seatPrice).toFixed(2);
+    if(confirm(`Comprar ${selectedSeats.length} entrada(s) por $${total}?`)){
+      // In production: crear reserva + crear payment intent (Stripe) + confirmar.
+      alert('Compra simulada realizada. Gracias por usar [Nombre del Cine] (demo).');
+      closeModal();
+    }
+  });
+
+  /*******************************
+   * Search & filters
+   *******************************/
+  document.getElementById('searchBtn').addEventListener('click', ()=>{
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    if(!q){ renderMovies(); renderSchedule(); return; }
+    const res = MOVIES.filter(m => m.title.toLowerCase().includes(q) || m.genre.toLowerCase().includes(q) || m.formats.join(' ').toLowerCase().includes(q));
+    renderMovies(res); renderSchedule(res);
+  });
+
+  document.querySelectorAll('.chip').forEach(ch => {
+    ch.addEventListener('click', ()=>{
+      const filter = ch.dataset.filter;
+      document.querySelectorAll('.chip').forEach(x=>x.style.opacity = '0.6');
+      ch.style.opacity = '1';
+      if(filter === 'all'){ renderMovies(); renderSchedule(); return; }
+      const res = MOVIES.filter(m => m.formats.map(f=>f.toLowerCase()).includes(filter));
+      renderMovies(res); renderSchedule(res);
+    });
+  });
+
+  /*******************************
+   * Loyalty & other simple handlers
+   *******************************/
+  document.getElementById('joinLoyal').addEventListener('click', ()=>{
+    const email = prompt('Ingresa tu email para unirte al programa de fidelidad (demo):');
+    if(email) alert('Gracias! Te hemos inscrito en modo demo: ' + email);
+  });
+
+  document.addEventListener('click', (e) => {
+    if(e.target.id === 'openMap') alert('Abrir mapa (simulado). En producción incrusta Google Maps o Leaflet.');
+  });
+
+  /*******************************
+   * Init
+   *******************************/
+  renderMovies(); renderComing(); renderSchedule();
+
+  // Accessibility note: for production add focus trap inside modal and manage aria-hidden on background.
+  </script>
+</body>
+</html>

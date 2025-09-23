@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title> CineMax — Cartelera, Horarios y Entradas</title>
   <meta name="description" content="Consulta la cartelera, próximos estrenos, horarios, formatos (2D/3D/IMAX), compra entradas y conoce nuestras promociones." />
-  <meta name="author" content="[Nombre del Cine]" />
+  <meta name="author" content="CineMax" />
   <meta name="theme-color" content="#071322" />
 
   <!-- JSON-LD básico (ejemplo): película + organization -->
@@ -135,7 +135,7 @@
 <body>
   <div class="container" id="mainContent">
     <header>
-      <div class="logo"><div class="mark">C</div><div style="line-height:1"><strong>[Nombre del Cine]</strong><div style="font-size:12px;color:var(--muted)">Cartelera • Entradas • Promos</div></div></div>
+      <div class="logo"><div class="mark">C</div><div style="line-height:1"><strong> CineMax </strong><div style="font-size:12px;color:var(--muted)">Cartelera • Entradas • Promos</div></div></div>
       <nav aria-label="Navegación principal">
         <a href="#cartelera">Cartelera</a>
         <a href="#estrenos">Estrenos</a>
@@ -194,7 +194,7 @@
         <div class="movies-grid" id="moviesGrid" aria-live="polite"></div>
       </section>
 
-      <!-- ESTRNOS -->
+      <!-- ESTRENOS -->
       <section id="estrenos" class="section" aria-label="Próximos estrenos">
         <h2>Próximos estrenos</h2>
         <div class="coming-row" id="comingRow"></div>
@@ -245,7 +245,7 @@
     </main>
 
     <footer>
-      © [Nombre del Cine] 2025 • Síguenos en Instagram · Facebook · X (Twitter)
+      © CineMax 2025 • Síguenos en Instagram · Facebook · X (Twitter)
     </footer>
   </div>
 
@@ -299,7 +299,7 @@
    * Datos (MVP) — reemplazar en producción con backend o TMDB
    *******************************/
   const MOVIES = [
-    { id:'m1', title:'Dune: Part Two', genre:'Ciencia ficción', duration:'2h 45m', rating:'PG-13', language:'Inglés', formats:['2D','IMAX'], poster:'https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'n3iW4bQGZ9k', synopsis:'Paul Atreides continúa su épica travesía por Arrakis.', showtimes:[{date:'2025-09-24', times:['12:30','16:00','20:00'], room:'IMAX'},{date:'2025-09-25', times:['15:00','19:30'], room:'Sala 1'}], price:14},
+    { id:'m1', title:'Dune: Part Two', genre:'Ciencia ficción', duration:'2h 45m', rating:'PG-13', language:'Inglés', formats:['2D','IMAX'], poster:'https://rtvc-assets-radionica3.s3.amazonaws.com/s3fs-public/inline-images/Poster%20Oficial_7.jpg', trailer:'https://youtu.be/esezQhsrix0?si=4JWADQ8ovh0WwVRo', synopsis:'Paul Atreides se une a Chani ya los Fremen mientras busca venganza contra los conspiradores que destruyeron a su familia. Paul se enfrenta a una elección entre el amor de su vida y el destino del universo, y debe evitar un futuro terrible.', showtimes:[{date:'2025-09-24', times:['12:30','16:00','20:00'], room:'IMAX'},{date:'2025-09-25', times:['15:00','19:30'], room:'Sala 1'}], price:14},
     { id:'m2', title:'Deadpool & Wolverine', genre:'Acción / Comedia', duration:'2h 10m', rating:'R', language:'Inglés', formats:['2D','IMAX'], poster:'https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'Q0CbN8sfihY', synopsis:'Wade y Logan se juntan para causar el caos.', showtimes:[{date:'2025-09-23', times:['13:00','16:30','20:15'], room:'IMAX'},{date:'2025-09-24', times:['14:00','18:00'], room:'Sala 2'}], price:12},
     { id:'m3', title:'Inside Out 2', genre:'Animación / Familiar', duration:'1h 55m', rating:'G', language:'Español', formats:['2D','3D'], poster:'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'aT8pG3kK1lg', synopsis:'Las emociones vuelven con nuevas aventuras.', showtimes:[{date:'2025-09-23', times:['11:00','15:00','18:30'], room:'Sala 3 - 3D'},{date:'2025-09-24', times:['12:00','16:00'], room:'Sala 2'}], price:9},
     { id:'m4', title:'Oppenheimer', genre:'Drama / Historia', duration:'3h 0m', rating:'R', language:'Inglés', formats:['2D'], poster:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder', trailer:'wGFX9ZL7mX4', synopsis:'Biografía del científico detrás del Proyecto Manhattan.', showtimes:[{date:'2025-09-23', times:['13:30','20:00'], room:'Sala 1'},{date:'2025-09-25', times:['17:00'], room:'Sala 2'}], price:11},
